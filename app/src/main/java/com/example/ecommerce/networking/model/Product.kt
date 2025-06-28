@@ -1,8 +1,11 @@
 package com.example.ecommerce.networking.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Product(
     val availabilityStatus: String,
-    val brand: String,
+    val brand: String?,
     val category: String,
     val description: String,
     val dimensions: Dimensions,

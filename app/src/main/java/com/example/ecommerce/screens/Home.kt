@@ -24,12 +24,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +54,7 @@ import com.example.ecommerce.core.Typography
 import com.example.ecommerce.core.White
 import com.example.ecommerce.networking.model.Product
 import com.example.ecommerce.networking.viewModel.ProductViewModel
+import com.example.ecommerce.room.ProductEntity
 import com.example.ecommerce.utils.network.ConnectivityObserver
 import com.example.ecommerce.utils.size.ScreenSizeUtils
 import org.koin.androidx.compose.koinViewModel
@@ -62,17 +65,22 @@ private var isConnected = mutableStateOf(false)
 @Composable
 fun HomeScreen(navController: NavController) {
     viewModel = koinViewModel<ProductViewModel>()
-    val networkStatus = viewModel?.networkStatus?.collectAsState()
-    if (networkStatus?.value == ConnectivityObserver.Status.Available && !isConnected.value) {
-        isConnected.value = true
-        viewModel?.getProducts()
-    }
 
+    val networkStatus = viewModel?.networkStatus?.collectAsState()
     val isLoading = viewModel?.isLoading?.value
     val isSuccess = viewModel?.isSuccess?.value
     val isError = viewModel?.isError?.value
     val errorMessage = viewModel?.errorMessage?.value
     val products = viewModel?.products
+
+    if (products?.isNotEmpty() == true) {
+        viewModel?.isSuccess?.value = true
+    }
+
+    if (networkStatus?.value == ConnectivityObserver.Status.Available && !isConnected.value) {
+        isConnected.value = true
+        viewModel?.getProductsList()
+    }
 
     Scaffold(
         modifier = Modifier
@@ -88,9 +96,7 @@ fun HomeScreen(navController: NavController) {
             ) {
                 when {
                     isSuccess == true -> {
-                        ProductList(
-                            products = products
-                        )
+                        ProductList(products = products, networkStatus)
                     }
 
                     isLoading == true -> {
@@ -111,10 +117,12 @@ fun HomeScreen(navController: NavController) {
 }
 
 @Composable
-private fun ProductList(products: MutableList<Product>?) {
+private fun ProductList(
+    products: List<Product>?,
+    networkStatus: State<ConnectivityObserver.Status>?
+) {
     val imageLoadingStates = remember { mutableStateMapOf<String, AsyncImagePainter.State>() }
     var allImagesLoaded by remember { mutableStateOf(false) }
-
     val lazyGridState = rememberLazyGridState()
 
     LaunchedEffect(imageLoadingStates.toMap(), products) {
@@ -200,7 +208,7 @@ private fun ProductList(products: MutableList<Product>?) {
 
             if (products?.isNotEmpty() == true) {
                 if (index == products.size - 1 && allImagesLoaded) {
-                    viewModel?.getProducts()
+                    viewModel?.getProductsList()
                 }
             }
         }

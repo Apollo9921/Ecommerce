@@ -1,27 +1,35 @@
 package com.example.ecommerce.networking.viewModel
 
+import android.app.Application
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ecommerce.koin.ProductRepository
 import com.example.ecommerce.networking.model.Product
 import com.example.ecommerce.networking.model.Products
+import com.example.ecommerce.room.AppDatabase
+import com.example.ecommerce.room.ProductEntity
 import com.example.ecommerce.utils.network.ConnectivityObserver
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 
 class ProductViewModel(
     private val productRepository: ProductRepository,
-    connectivityObserver: ConnectivityObserver
+    connectivityObserver: ConnectivityObserver,
+    application: Application
 ) : ViewModel() {
 
     private val _productState = MutableStateFlow<ProductState>(ProductState.Error("Unknown Error"))
     private val productState: StateFlow<ProductState> = _productState
+
+    private val productDao = AppDatabase.getDatabase(application).productDao()
 
     var isLoading = mutableStateOf(false)
     var isSuccess = mutableStateOf(false)
@@ -31,7 +39,7 @@ class ProductViewModel(
     var products = mutableStateListOf<Product>()
 
     private val limit = 10
-    var skip = -20
+    private var skip = -10
 
     val networkStatus: StateFlow<ConnectivityObserver.Status> =
         connectivityObserver.observe()
@@ -47,8 +55,14 @@ class ProductViewModel(
         data class Error(val message: String) : ProductState()
     }
 
+    init {
+        viewModelScope.launch {
+            val localProducts = getLocalProducts()
+            products.addAll(localProducts)
+        }
+    }
 
-    fun getProducts() {
+    fun getProductsList() {
         viewModelScope.launch {
             try {
                 isLoading.value = true
@@ -57,7 +71,7 @@ class ProductViewModel(
                     isLoading.value = false
                     return@launch
                 }
-                skip += limit
+                skip = products.size
                 val response = productRepository.getProducts(limit, skip)
                 if (response.isSuccessful && response.body() != null) {
                     _productState.value = ProductState.Success(response.body()!!)
@@ -81,17 +95,32 @@ class ProductViewModel(
                         isError.value = true
                         errorMessage.value = state.message
                     }
-                    is ProductState.Success -> {
-                        val newProducts = ArrayList<Product>()
-                        newProducts.addAll(products)
-                        newProducts.addAll(state.products.products)
-                        products = newProducts.distinctBy { it.id }.toMutableStateList()
 
+                    is ProductState.Success -> {
+                        insert(ProductEntity(items = state.products.products))
+                        val localProducts = getLocalProducts()
+                        products.addAll(localProducts)
                         isLoading.value = false
                         isSuccess.value = true
                     }
                 }
             }
+        }
+    }
+
+    private fun insert(product: ProductEntity) = viewModelScope.launch {
+        productDao.insertProduct(product)
+    }
+
+    private suspend fun getLocalProducts(): List<Product> {
+        val listOfProductEntities: Flow<List<ProductEntity>> = productDao.getAllProducts()
+        //TODO change firstOrNull
+        val productsList: List<Product> = listOfProductEntities.firstOrNull()?.flatMap { it.items } ?: emptyList()
+        return if (productsList.isNotEmpty()) {
+            isSuccess.value = true
+            productsList
+        } else {
+            emptyList()
         }
     }
 }

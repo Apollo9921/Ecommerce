@@ -2,6 +2,8 @@ package com.example.ecommerce.networking.instance
 
 import com.example.ecommerce.BuildConfig
 import com.example.ecommerce.networking.requests.ProductService
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -15,6 +17,10 @@ object ProductInstance {
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
+
+    private val moshi = Moshi.Builder()
+        .add(KotlinJsonAdapterFactory())
+        .build()
 
     private val headerInterceptor = Interceptor { chain ->
         val originalRequest = chain.request()
@@ -33,7 +39,7 @@ object ProductInstance {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(MoshiConverterFactory.create())
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
             .create(ProductService::class.java)
     }
