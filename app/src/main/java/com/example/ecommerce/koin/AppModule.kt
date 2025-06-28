@@ -1,9 +1,11 @@
 package com.example.ecommerce.koin
 
 import com.example.ecommerce.networking.instance.ProductInstance
+import com.example.ecommerce.networking.viewModel.ProductViewModel
 import com.example.ecommerce.utils.network.ConnectivityObserver
 import com.example.ecommerce.utils.network.NetworkConnectivityObserver
 import org.koin.android.ext.koin.androidContext
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val appModule = module {
@@ -14,4 +16,6 @@ val appModule = module {
     single<ConnectivityObserver> {
         NetworkConnectivityObserver(androidContext())
     }
+
+    viewModel { ProductViewModel(get(), get()) }
 }
