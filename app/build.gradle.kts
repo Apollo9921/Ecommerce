@@ -26,6 +26,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "BASE_URL", "\"https://dummyjson.com/\"")
+        }
+        debug {
+            buildConfigField("String", "BASE_URL", "\"https://dummyjson.com/\"")
+            applicationIdSuffix = ".debug"
         }
     }
     compileOptions {
@@ -37,6 +42,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
