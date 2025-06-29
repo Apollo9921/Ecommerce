@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ecommerce.R
@@ -44,7 +45,8 @@ fun TopBar(title: String, isBack: Boolean = true, backStack: () -> Boolean) {
         }
         Text(
             style = Typography.titleLarge.copy(fontSize = titleSize),
-            text = title
+            text = title,
+            textAlign = TextAlign.Start,
         )
     }
 }

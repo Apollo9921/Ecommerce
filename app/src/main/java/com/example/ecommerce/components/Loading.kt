@@ -9,7 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.ecommerce.core.BackgroundColor
-import com.example.ecommerce.core.White
+import com.example.ecommerce.core.Black
 
 @Composable
 fun LoadingScreen() {
@@ -20,7 +20,7 @@ fun LoadingScreen() {
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(
-            color = White,
+            color = Black,
             strokeWidth = 4.dp
         )
     }
