@@ -15,9 +15,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 
 class ProductViewModel(
@@ -39,7 +38,7 @@ class ProductViewModel(
     var products = mutableStateListOf<Product>()
 
     private val limit = 10
-    private var skip = -10
+    private var skip = 0
 
     val networkStatus: StateFlow<ConnectivityObserver.Status> =
         connectivityObserver.observe()
@@ -57,8 +56,9 @@ class ProductViewModel(
 
     init {
         viewModelScope.launch {
-            val localProducts = getLocalProducts()
-            products.addAll(localProducts)
+            getLocalProducts().collect { updatedProducts ->
+                insertProducts(updatedProducts)
+            }
         }
     }
 
@@ -98,8 +98,12 @@ class ProductViewModel(
 
                     is ProductState.Success -> {
                         insert(ProductEntity(items = state.products.products))
-                        val localProducts = getLocalProducts()
-                        products.addAll(localProducts)
+                        getLocalProducts().collect { updatedProducts ->
+                            insertProducts(updatedProducts)
+                        }
+                        if (products.isEmpty()) {
+                            products.addAll(state.products.products)
+                        }
                         isLoading.value = false
                         isSuccess.value = true
                     }
@@ -112,15 +116,19 @@ class ProductViewModel(
         productDao.insertProduct(product)
     }
 
-    private suspend fun getLocalProducts(): List<Product> {
-        val listOfProductEntities: Flow<List<ProductEntity>> = productDao.getAllProducts()
-        //TODO change firstOrNull
-        val productsList: List<Product> = listOfProductEntities.firstOrNull()?.flatMap { it.items } ?: emptyList()
-        return if (productsList.isNotEmpty()) {
-            isSuccess.value = true
-            productsList
-        } else {
-            emptyList()
+    private fun getLocalProducts(): Flow<List<Product>> {
+        return productDao.getAllProducts().map { productEntityList ->
+            productEntityList.flatMap { productEntity ->
+                productEntity.items
+            }
         }
+    }
+
+    private fun insertProducts(updatedProducts: List<Product>) {
+        products.clear()
+        products.addAll(updatedProducts)
+        val uniqueProducts = products.distinctBy { it.id }
+        products.clear()
+        products.addAll(uniqueProducts)
     }
 }
