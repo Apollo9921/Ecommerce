@@ -1,8 +1,11 @@
 package com.example.ecommerce.networking.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
 @Serializable
+@Parcelize
 data class Product(
     val availabilityStatus: String,
     val brand: String?,
@@ -26,4 +29,4 @@ data class Product(
     val title: String,
     val warrantyInformation: String,
     val weight: Int
-)
+) : Parcelable

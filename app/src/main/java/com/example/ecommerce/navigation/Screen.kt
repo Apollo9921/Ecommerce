@@ -1,8 +1,19 @@
 package com.example.ecommerce.navigation
 
-sealed class Screen(val route: String) {
-    object Home : Screen("home")
-    data object Details : Screen("details/{productId}") {
-        fun createRoute(productId: String) = "details/$productId"
-    }
+import kotlinx.serialization.Serializable
+
+@Serializable
+sealed interface Screen {
+    @Serializable
+    data object Home : Screen
+
+    @Serializable
+    data class Details(
+        val title: String,
+        val thumbnail: String,
+        val rating: Double,
+        val price: Double,
+        val discountPercentage: Double,
+        val stock: Int
+    ) : Screen
 }

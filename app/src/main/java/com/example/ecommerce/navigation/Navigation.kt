@@ -5,6 +5,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import com.example.ecommerce.screens.DetailsScreen
 import com.example.ecommerce.screens.HomeScreen
 
 @Composable
@@ -13,19 +15,28 @@ fun Navigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Home.route
+        startDestination = Screen.Home
     ) {
-        composable(Screen.Home.route) {
+        composable<Screen.Home> {
             HomeScreen(navController = navController)
         }
-        composable(Screen.Details.route) {
-            //TODO add details screen
-            /*val productId = it.arguments?.getString("productId")
+        composable<Screen.Details> { backStackEntry ->
+            val screenArgs: Screen.Details = backStackEntry.toRoute()
+            val title = screenArgs.title
+            val thumbnail = screenArgs.thumbnail
+            val rating = screenArgs.rating
+            val price = screenArgs.price
+            val discountPercentage = screenArgs.discountPercentage
+            val stock = screenArgs.stock
             DetailsScreen(
-                navController = navController,
-                productId = productId,
-                backStack = navController::popBackStack
-            )*/
+                title = title,
+                thumbnail = thumbnail,
+                rating = rating,
+                price = price,
+                discountPercentage = discountPercentage,
+                stock = stock,
+                backStack = { navController.popBackStack() }
+            )
         }
     }
 }

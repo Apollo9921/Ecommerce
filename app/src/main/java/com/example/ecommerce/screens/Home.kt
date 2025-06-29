@@ -1,6 +1,7 @@
 package com.example.ecommerce.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,14 +25,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,9 +51,9 @@ import com.example.ecommerce.core.ProductColor
 import com.example.ecommerce.core.RatingColor
 import com.example.ecommerce.core.Typography
 import com.example.ecommerce.core.White
+import com.example.ecommerce.navigation.Screen
 import com.example.ecommerce.networking.model.Product
 import com.example.ecommerce.networking.viewModel.ProductViewModel
-import com.example.ecommerce.room.ProductEntity
 import com.example.ecommerce.utils.network.ConnectivityObserver
 import com.example.ecommerce.utils.size.ScreenSizeUtils
 import org.koin.androidx.compose.koinViewModel
@@ -86,7 +85,7 @@ fun HomeScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .safeDrawingPadding(),
-        topBar = { TopBar(title = stringResource(R.string.home), isBack = false, backStack = {}) },
+        topBar = { TopBar(title = stringResource(R.string.home), isBack = false, backStack = {false}) },
         content = {
             Box(
                 modifier = Modifier
@@ -96,7 +95,7 @@ fun HomeScreen(navController: NavController) {
             ) {
                 when {
                     isSuccess == true -> {
-                        ProductList(products = products, networkStatus)
+                        ProductList(products = products, navController)
                     }
 
                     isLoading == true -> {
@@ -119,7 +118,7 @@ fun HomeScreen(navController: NavController) {
 @Composable
 private fun ProductList(
     products: List<Product>?,
-    networkStatus: State<ConnectivityObserver.Status>?
+    navController: NavController
 ) {
     val imageLoadingStates = remember { mutableStateMapOf<String, AsyncImagePainter.State>() }
     var allImagesLoaded by remember { mutableStateOf(false) }
@@ -156,7 +155,17 @@ private fun ProductList(
                     .height(height)
                     .padding(10.dp)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(ProductColor),
+                    .background(ProductColor)
+                    .clickable{
+                        navController.navigate(Screen.Details(
+                            title = title ?: "",
+                            thumbnail = imageUrl ?: "",
+                            rating = rating ?: 0.0,
+                            price = product?.price ?: 0.0,
+                            discountPercentage = product?.discountPercentage ?: 0.0,
+                            stock = product?.stock ?: 0
+                        ))
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Column(

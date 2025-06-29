@@ -23,13 +23,13 @@ import com.example.ecommerce.core.White
 import com.example.ecommerce.utils.size.ScreenSizeUtils
 
 @Composable
-fun TopBar(title: String, isBack: Boolean = true, backStack: @Composable () -> Unit) {
+fun TopBar(title: String, isBack: Boolean = true, backStack: () -> Boolean) {
     val titleSize = ScreenSizeUtils.calculateCustomWidth(baseSize = 20).sp
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(TopBarColor)
-            .padding(horizontal = 10.dp, vertical = 10.dp),
+            .padding(horizontal = 10.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
     ) {
@@ -38,7 +38,7 @@ fun TopBar(title: String, isBack: Boolean = true, backStack: @Composable () -> U
                 painter = painterResource(id = R.drawable.back),
                 contentDescription = null,
                 colorFilter = ColorFilter.tint(White),
-                modifier = Modifier.clickable { backStack }
+                modifier = Modifier.clickable { backStack() }
             )
             Spacer(modifier = Modifier.padding(10.dp))
         }
