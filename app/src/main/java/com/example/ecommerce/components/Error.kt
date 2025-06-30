@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.example.ecommerce.core.BackgroundColor
+import com.example.ecommerce.core.Black
 import com.example.ecommerce.core.Typography
 import com.example.ecommerce.utils.size.ScreenSizeUtils
 
@@ -25,7 +26,8 @@ fun ErrorScreen(errorMessage: String?) {
         Text(
             style = Typography.titleLarge.copy(fontSize = titleSize),
             text = "$errorMessage",
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = Black
         )
     }
 }

@@ -35,7 +35,7 @@ fun Navigation() {
                 price = price,
                 discountPercentage = discountPercentage,
                 stock = stock,
-                backStack = { navController.popBackStack() }
+                backStack = { navController.navigateUp() }
             )
         }
     }
